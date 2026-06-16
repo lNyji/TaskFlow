@@ -1,8 +1,8 @@
 package main
 
 import (
-	"TaskFlow/database"
-	"TaskFlow/models"
+	"TaskFlow/internal/storage"
+	"TaskFlow/internal/task"
 	"bufio"
 	"fmt"
 	"os"
@@ -64,12 +64,12 @@ func Menu() {
 }
 
 func CreateTask(title, description string) {
-	db, err := database.Connect()
+	db, err := storage.Connect()
 	if err != nil {
 		panic(err)
 	}
 
-	task := models.Task{
+	task := task.Task{
 		Title:       title,
 		Description: description,
 		Completed:   false,
@@ -83,12 +83,12 @@ func CreateTask(title, description string) {
 }
 
 func ListTasks() {
-	db, err := database.Connect()
+	db, err := storage.Connect()
 	if err != nil {
 		panic(err)
 	}
 
-	var tasks []models.Task
+	var tasks []task.Task
 
 	if err := db.Order("id asc").Find(&tasks).Error; err != nil {
 		panic(err)
@@ -101,7 +101,7 @@ func ListTasks() {
 }
 
 func UpdateTask() {
-	db, err := database.Connect()
+	db, err := storage.Connect()
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +114,7 @@ func UpdateTask() {
 	var id uint
 	fmt.Scan(&id)
 
-	var task models.Task
+	var task task.Task
 
 	if err := db.First(&task, id).Error; err != nil {
 		fmt.Println("Tarefa não encontrada!")
@@ -159,7 +159,7 @@ func UpdateTask() {
 }
 
 func DeleteTask() {
-	db, err := database.Connect()
+	db, err := storage.Connect()
 	if err != nil {
 		panic(err)
 	}
@@ -170,7 +170,7 @@ func DeleteTask() {
 	var id uint
 	fmt.Scan(&id)
 
-	var task models.Task
+	var task task.Task
 
 	if err := db.First(&task, id).Error; err != nil {
 		fmt.Println("Tarefa não encontrada!")

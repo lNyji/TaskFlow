@@ -1,7 +1,7 @@
-package database
+package storage
 
 import (
-	"TaskFlow/models"
+	"TaskFlow/internal/task"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -13,7 +13,7 @@ func Connect() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := db.AutoMigrate(&models.Task{}); err != nil {
+	if err := db.AutoMigrate(&task.Task{}); err != nil {
 		return nil, err
 	}
 
