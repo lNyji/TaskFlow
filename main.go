@@ -1,0 +1,184 @@
+package main
+
+import (
+	"TaskFlow/database"
+	"TaskFlow/models"
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+)
+
+func main() {
+	Menu()
+}
+
+func Menu() {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Println("\n=== Menu ===")
+		fmt.Println("1. Criar Nova Tarefa")
+		fmt.Println("2. Ver Tarefas")
+		fmt.Println("3. Atualizar Tarefa")
+		fmt.Println("4. Remover Tarefa")
+		fmt.Println("0. Sair")
+		fmt.Print("Escolha uma opção: ")
+
+		choiceStr, _ := reader.ReadString('\n')
+		choiceStr = strings.TrimSpace(choiceStr)
+
+		switch choiceStr {
+		case "1":
+			fmt.Println("\n=== Nova Tarefa ===")
+			fmt.Print("Título: ")
+			title, _ := reader.ReadString('\n')
+			title = strings.TrimSpace(title) // remove \n
+
+			fmt.Print("Descrição (opcional): ")
+			description, _ := reader.ReadString('\n')
+			description = strings.TrimSpace(description) // remove \n
+
+			CreateTask(title, description)
+			fmt.Println("===================")
+
+		case "2":
+			fmt.Println("\n=== Lista de Tarefas ===")
+			ListTasks()
+
+		case "3":
+			UpdateTask()
+
+		case "4":
+			DeleteTask()
+
+		case "0":
+			fmt.Println("Saindo...")
+			return
+
+		default:
+			fmt.Println("Opção inválida!")
+		}
+	}
+}
+
+func CreateTask(title, description string) {
+	db, err := database.Connect()
+	if err != nil {
+		panic(err)
+	}
+
+	task := models.Task{
+		Title:       title,
+		Description: description,
+		Completed:   false,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := db.Create(&task).Error; err != nil {
+		panic(err)
+	}
+}
+
+func ListTasks() {
+	db, err := database.Connect()
+	if err != nil {
+		panic(err)
+	}
+
+	var tasks []models.Task
+
+	if err := db.Order("id asc").Find(&tasks).Error; err != nil {
+		panic(err)
+	}
+
+	for _, t := range tasks {
+		fmt.Printf("ID: %d | %s | %s | done: %t\n",
+			t.ID, t.Title, t.Description, t.Completed)
+	}
+}
+
+func UpdateTask() {
+	db, err := database.Connect()
+	if err != nil {
+		panic(err)
+	}
+
+	ListTasks()
+
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("\nDigite o ID da tarefa que deseja atualizar: ")
+	var id uint
+	fmt.Scan(&id)
+
+	var task models.Task
+
+	if err := db.First(&task, id).Error; err != nil {
+		fmt.Println("Tarefa não encontrada!")
+		return
+	}
+
+	fmt.Printf("Novo título (%s): ", task.Title)
+	title, _ := reader.ReadString('\n')
+	title = strings.TrimSpace(title)
+
+	fmt.Printf("Nova descrição (%s): ", task.Description)
+	description, _ := reader.ReadString('\n')
+	description = strings.TrimSpace(description)
+
+	fmt.Printf("Concluída? (s/n) [%t]: ", task.Completed)
+	completedStr, _ := reader.ReadString('\n')
+	completedStr = strings.TrimSpace(strings.ToLower(completedStr))
+
+	if title != "" {
+		task.Title = title
+	}
+
+	if description != "" {
+		task.Description = description
+	}
+
+	switch completedStr {
+	case "s":
+		task.Completed = true
+	case "n":
+		task.Completed = false
+	}
+
+	task.UpdatedAt = time.Now()
+
+	if err := db.Save(&task).Error; err != nil {
+		fmt.Println("Erro ao atualizar tarefa:", err)
+		return
+	}
+
+	fmt.Println("Tarefa atualizada com sucesso!")
+}
+
+func DeleteTask() {
+	db, err := database.Connect()
+	if err != nil {
+		panic(err)
+	}
+
+	ListTasks()
+
+	fmt.Print("\nDigite o ID da tarefa que deseja remover: ")
+	var id uint
+	fmt.Scan(&id)
+
+	var task models.Task
+
+	if err := db.First(&task, id).Error; err != nil {
+		fmt.Println("Tarefa não encontrada!")
+		return
+	}
+
+	if err := db.Delete(&task, id).Error; err != nil {
+		fmt.Println("Erro ao remover a tarefa")
+		return
+	}
+}
