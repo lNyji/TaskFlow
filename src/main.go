@@ -1,6 +1,7 @@
 package main
 
 import (
+	"TaskFlow/internal/note"
 	"TaskFlow/internal/storage"
 	"TaskFlow/internal/task"
 	"TaskFlow/ui"
@@ -11,47 +12,78 @@ import (
 )
 
 func main() {
+
 	db, err := storage.Connect()
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&task.Task{})
+	db.AutoMigrate(
+		&task.Task{},
+		&note.Note{},
+	)
 
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		choiceStr := ui.ShowMenu()
+		optionMenu := ui.ShowMenu()
 
-		switch choiceStr {
+		switch optionMenu {
 		case 1:
-			fmt.Println("\n=== Nova Tarefa ===")
-			fmt.Print("Título: ")
-			title, _ := reader.ReadString('\n')
-			title = strings.TrimSpace(title)
+			optionNote := ui.MenuNotes()
 
-			fmt.Print("Descrição (opcional): ")
-			description, _ := reader.ReadString('\n')
-			description = strings.TrimSpace(description)
+			switch optionNote {
+			case 1:
+				fmt.Println("Em breve...")
+			case 2:
+				fmt.Println("Em breve...")
+			case 3:
+				fmt.Println("Em breve...")
+			case 4:
+				fmt.Println("Em breve...")
+			case 0:
+				fmt.Println("Saindo...")
+				return
 
-			task.Create(title, description)
-			fmt.Println("===================")
+			default:
+				fmt.Println("Opção inválida!")
+			}
 
 		case 2:
-			fmt.Println("\n=== Lista de Tarefas ===")
-			task.List()
+			optionTask := ui.MenuTasks()
 
-		case 3:
-			task.Update()
+			switch optionTask {
+			case 1:
+				fmt.Println("\n=== Nova Tarefa ===")
+				fmt.Print("Título: ")
+				title, _ := reader.ReadString('\n')
+				title = strings.TrimSpace(title)
 
-		case 4:
-			task.Delete()
+				fmt.Print("Descrição (opcional): ")
+				description, _ := reader.ReadString('\n')
+				description = strings.TrimSpace(description)
 
-		case 0:
-			fmt.Println("Saindo...")
-			return
+				task.Create(title, description)
+				fmt.Println("===================")
 
+			case 2:
+				fmt.Println("\n=== Lista de Tarefas ===")
+				task.List()
+
+			case 3:
+				task.Update()
+
+			case 4:
+				task.Delete()
+
+			case 0:
+				fmt.Println("Saindo...")
+				return
+
+			default:
+				fmt.Println("Opção inválida!")
+			}
 		default:
-			fmt.Println("Opção inválida!")
+			fmt.Println("Opção inválida")
 		}
 	}
 }
