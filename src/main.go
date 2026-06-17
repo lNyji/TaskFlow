@@ -3,6 +3,7 @@ package main
 import (
 	"TaskFlow/internal/storage"
 	"TaskFlow/internal/task"
+	"TaskFlow/ui"
 	"bufio"
 	"fmt"
 	"os"
@@ -18,42 +19,33 @@ func Menu() {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Println("\n=== Menu ===")
-		fmt.Println("1. Criar Nova Tarefa")
-		fmt.Println("2. Ver Tarefas")
-		fmt.Println("3. Atualizar Tarefa")
-		fmt.Println("4. Remover Tarefa")
-		fmt.Println("0. Sair")
-		fmt.Print("Escolha uma opção: ")
-
-		choiceStr, _ := reader.ReadString('\n')
-		choiceStr = strings.TrimSpace(choiceStr)
+		choiceStr := ui.ShowMenu()
 
 		switch choiceStr {
-		case "1":
+		case 1:
 			fmt.Println("\n=== Nova Tarefa ===")
 			fmt.Print("Título: ")
 			title, _ := reader.ReadString('\n')
-			title = strings.TrimSpace(title) // remove \n
+			title = strings.TrimSpace(title)
 
 			fmt.Print("Descrição (opcional): ")
 			description, _ := reader.ReadString('\n')
-			description = strings.TrimSpace(description) // remove \n
+			description = strings.TrimSpace(description)
 
 			CreateTask(title, description)
 			fmt.Println("===================")
 
-		case "2":
+		case 2:
 			fmt.Println("\n=== Lista de Tarefas ===")
 			ListTasks()
 
-		case "3":
+		case 3:
 			UpdateTask()
 
-		case "4":
+		case 4:
 			DeleteTask()
 
-		case "0":
+		case 0:
 			fmt.Println("Saindo...")
 			return
 
