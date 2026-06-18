@@ -33,13 +33,27 @@ func main() {
 
 			switch optionNote {
 			case 1:
-				fmt.Println("Em breve...")
+				fmt.Println("\n=== Nova nota ===")
+				fmt.Print("Título: ")
+				title, _ := reader.ReadString('\n')
+				title = strings.TrimSpace(title)
+
+				fmt.Print("Descrição (opcional): ")
+				description, _ := reader.ReadString('\n')
+				description = strings.TrimSpace(description)
+
+				fmt.Print("Conteúdo: ")
+				content, _ := reader.ReadString('\n')
+				content = strings.TrimSpace(content)
+
+				note.Create(title, description, content)
+				fmt.Println("===================")
 			case 2:
-				fmt.Println("Em breve...")
+				note.List()
 			case 3:
-				fmt.Println("Em breve...")
+				note.Update()
 			case 4:
-				fmt.Println("Em breve...")
+				note.Delete()
 			case 0:
 				fmt.Println("Saindo...")
 				return
@@ -82,6 +96,8 @@ func main() {
 			default:
 				fmt.Println("Opção inválida!")
 			}
+		case 0:
+			return
 		default:
 			fmt.Println("Opção inválida")
 		}
