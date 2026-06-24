@@ -24,6 +24,8 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 
+	taskRepo := task.NewRepository(db)
+
 	for {
 		optionMenu := ui.ShowMenu()
 
@@ -57,7 +59,6 @@ func main() {
 			case 0:
 				fmt.Println("Saindo...")
 				return
-
 			default:
 				fmt.Println("Opção inválida!")
 			}
@@ -67,28 +68,42 @@ func main() {
 
 			switch optionTask {
 			case 1:
-				fmt.Println("\n=== Nova Tarefa ===")
-				fmt.Print("Título: ")
-				title, _ := reader.ReadString('\n')
-				title = strings.TrimSpace(title)
+				newTask := ui.CreateTask()
 
-				fmt.Print("Descrição (opcional): ")
-				description, _ := reader.ReadString('\n')
-				description = strings.TrimSpace(description)
-
-				task.Create(title, description)
-				fmt.Println("===================")
-
+				if err := taskRepo.Create(newTask); err != nil {
+					fmt.Println(err)
+				}
 			case 2:
-				fmt.Println("\n=== Lista de Tarefas ===")
-				task.List()
+				tasks, err := taskRepo.List()
+
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				ui.ListTasks(tasks)
 
 			case 3:
-				task.Update()
+				tasks, err := taskRepo.List()
+				if err != nil {
+					fmt.Println(err)
+				}
 
+				input := ui.UpdateTask(tasks)
+
+				if err := taskRepo.Update(input); err != nil {
+					fmt.Println(err)
+				}
 			case 4:
-				task.Delete()
+				tasks, err := taskRepo.List()
+				if err != nil {
+					fmt.Println(err)
+				}
 
+				input := ui.DeleteTask(tasks)
+
+				if err := taskRepo.Delete(input); err != nil {
+					fmt.Println(err)
+				}
 			case 0:
 				fmt.Println("Saindo...")
 				return

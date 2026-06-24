@@ -10,3 +10,10 @@ type Task struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type UpdateTask struct {
+	ID          uint
+	Title       string
+	Description string
+	Completed   string
+}

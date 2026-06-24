@@ -1,93 +1,51 @@
 package task
 
 import (
-	"TaskFlow/internal/storage"
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-func Create(title, description string) {
-	db, err := storage.Connect()
-	if err != nil {
-		panic(err)
-	}
+type Repository struct {
+	db *gorm.DB
+}
 
-	task := Task{
-		Title:       title,
-		Description: description,
-		Completed:   false,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+func (r *Repository) Order(tasks []Task) any {
+	panic("unimplemented")
+}
 
-	if err := db.Create(&task).Error; err != nil {
-		panic(err)
+func NewRepository(db *gorm.DB) *Repository {
+	return &Repository{
+		db: db,
 	}
 }
 
-func List() {
-	db, err := storage.Connect()
-	if err != nil {
-		panic(err)
-	}
+func (r *Repository) Create(task Task) error {
+	return r.db.Create(&task).Error
+}
 
+func (r *Repository) List() ([]Task, error) {
 	var tasks []Task
 
-	if err := db.Order("id asc").Find(&tasks).Error; err != nil {
-		panic(err)
-	}
-
-	for _, t := range tasks {
-		fmt.Printf("ID: %d | %s | %s | done: %t\n",
-			t.ID, t.Title, t.Description, t.Completed)
-	}
+	return tasks, r.db.Order("id asc").Find(&tasks).Error
 }
 
-func Update() {
-	db, err := storage.Connect()
-	if err != nil {
-		panic(err)
-	}
-
-	List()
-
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("\nDigite o ID da tarefa que deseja atualizar: ")
-	var id uint
-	fmt.Scan(&id)
-
+func (r *Repository) Update(input UpdateTask) error {
 	var task Task
 
-	if err := db.First(&task, id).Error; err != nil {
-		fmt.Println("Tarefa não encontrada!")
-		return
+	if err := r.db.First(&task, input.ID).Error; err != nil {
+		return err
 	}
 
-	fmt.Printf("Novo título (%s): ", task.Title)
-	title, _ := reader.ReadString('\n')
-	title = strings.TrimSpace(title)
-
-	fmt.Printf("Nova descrição (%s): ", task.Description)
-	description, _ := reader.ReadString('\n')
-	description = strings.TrimSpace(description)
-
-	fmt.Printf("Concluída? (s/n) [%t]: ", task.Completed)
-	completedStr, _ := reader.ReadString('\n')
-	completedStr = strings.TrimSpace(strings.ToLower(completedStr))
-
-	if title != "" {
-		task.Title = title
+	if input.Title != "" {
+		task.Title = input.Title
 	}
 
-	if description != "" {
-		task.Description = description
+	if input.Description != "" {
+		task.Description = input.Description
 	}
 
-	switch completedStr {
+	switch input.Completed {
 	case "s":
 		task.Completed = true
 	case "n":
@@ -96,35 +54,11 @@ func Update() {
 
 	task.UpdatedAt = time.Now()
 
-	if err := db.Save(&task).Error; err != nil {
-		fmt.Println("Erro ao atualizar tarefa:", err)
-		return
-	}
-
-	fmt.Println("Tarefa atualizada com sucesso!")
+	return r.db.Save(&task).Error
 }
 
-func Delete() {
-	db, err := storage.Connect()
-	if err != nil {
-		panic(err)
-	}
-
-	List()
-
-	fmt.Print("\nDigite o ID da tarefa que deseja remover: ")
-	var id uint
-	fmt.Scan(&id)
-
+func (r *Repository) Delete(id uint) error {
 	var task Task
 
-	if err := db.First(&task, id).Error; err != nil {
-		fmt.Println("Tarefa não encontrada!")
-		return
-	}
-
-	if err := db.Delete(&task, id).Error; err != nil {
-		fmt.Println("Erro ao remover a tarefa")
-		return
-	}
+	return r.db.First(&task, id).Delete(&task, id).Error
 }
